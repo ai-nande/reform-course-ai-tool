@@ -34,16 +34,26 @@
   .hint{font-size:13px; color:var(--mut); margin:0 0 12px;}
   h2.st{font-size:17px; font-weight:800; margin:4px 0 6px; padding-left:10px; border-left:4px solid var(--red);}
 
-  /* 题目选择 */
-  .topics{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;}
+  /* 题目选择 — 竖向列表 */
+  .topics{display:flex; flex-direction:column; gap:0; border:1.5px solid var(--line); border-radius:12px; overflow:hidden; background:var(--paper);}
   .topic{
-    border:1.5px solid var(--line); background:var(--paper); color:var(--ink);
-    padding:14px 10px; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer;
-    text-align:center; transition:.15s; min-height:54px; display:flex; align-items:center; justify-content:center;
+    border:none; border-bottom:1px solid var(--line); color:var(--ink);
+    padding:16px 18px; font-size:15.5px; font-weight:600; cursor:pointer;
+    text-align:left; transition:.15s; display:flex; align-items:center; justify-content:space-between;
+    background:#fff;
   }
-  .topic:active{transform:scale(.98);}
-  .topic.active{background:var(--red); color:#fff; border-color:var(--red);}
-  .custom-row{margin-top:12px;}
+  .topic:last-child{border-bottom:none;}
+  .topic:active{background:#fdf4f5;}
+  .topic.active{background:var(--red); color:#fff;}
+  .topic .chk{width:20px; height:20px; border-radius:50%; border:2px solid var(--line); flex-shrink:0; margin-left:12px; transition:.15s; box-sizing:border-box;}
+  .topic.active .chk{background:#fff; border-color:#fff;}
+  /* 自定义题目（列表最后一项内的输入框） */
+  .custom-row{padding:14px 18px; background:#fafafa;}
+  .custom-row input{
+    width:100%; padding:13px 14px; border:1.5px solid var(--line); border-radius:8px;
+    font-size:15px; font-family:inherit; outline:none; background:#fff;
+  }
+  .custom-row input:focus{border-color:var(--red);}
   .custom-row input{
     width:100%; padding:13px 14px; border:1.5px solid var(--line); border-radius:10px;
     font-size:15px; font-family:inherit; outline:none;
@@ -117,11 +127,8 @@
   <!-- 第 0 步：选题目 -->
   <section class="step-view" id="step0">
     <h2 class="st">选研讨题目</h2>
-    <p class="hint">六个备选方向点选其一即可；也可在下方自定义本期课实际锚定的题目。题目不固定，每期可换。</p>
+    <p class="hint">点选本期研讨题目；也可在最后一项自定义。题目不固定，每期可换。</p>
     <div class="topics" id="topics"></div>
-    <div class="custom-row">
-      <input id="customTopic" type="text" placeholder="或自定义题目（如：本地文旅融合、基层数字治理…）" oninput="onCustom()">
-    </div>
     <div class="warn" id="warn">请先选择或填写研讨题目，再继续。</div>
     <button class="btn" onclick="goNext()">进入讨论 →</button>
   </section>
@@ -266,7 +273,8 @@ function renderTopics(){
   box.innerHTML='';
   PRESETS.forEach(name=>{
     const b=document.createElement('div');
-    b.className='topic'; b.textContent=name;
+    b.className='topic';
+    b.innerHTML='<span>'+name+'</span><span class="chk"></span>';
     b.addEventListener('click', ()=>{
       selectedPreset = name;
       document.getElementById('customTopic').value='';
@@ -276,6 +284,11 @@ function renderTopics(){
     if(selectedPreset===name) b.classList.add('active');
     box.appendChild(b);
   });
+  // 自定义项（最后一项）
+  const c=document.createElement('div');
+  c.className='topic custom-row';
+  c.innerHTML='<input id="customTopic" type="text" placeholder="✏ 自定义题目（如：本地文旅融合、基层数字治理…）" oninput="onCustom()">';
+  box.appendChild(c);
 }
 function onCustom(){
   selectedPreset=null;
