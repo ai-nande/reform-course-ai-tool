@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>提高改革攻坚能力 · 学员 AI 互动工具</title>
+<style>
+  :root{
+    --ink:#1f1a1a; --paper:#ffffff; --panel:#fbeaec; --panel2:#fdf4f5;
+    --line:#ecd2d6; --red:#C8102E; --red-d:#9e0c22; --mut:#7a5a62; --ok:#1a7f37;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    color:var(--ink); background:var(--paper); line-height:1.6; font-size:16px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:840px; margin:0 auto; padding:18px 16px 60px;}
+  header{border-bottom:3px solid var(--red); padding-bottom:13px; margin-bottom:14px;}
+  header h1{font-size:21px; line-height:1.3; margin:0 0 5px; font-weight:800; letter-spacing:.4px;}
+  header p{margin:0; color:var(--mut); font-size:13.5px;}
+
+  /* 进度 */
+  .prog{display:flex; align-items:center; gap:10px; margin:14px 0 18px; flex-wrap:wrap;}
+  .prog .label{font-size:13.5px; font-weight:800; color:var(--red);}
+  .dots{display:flex; gap:7px;}
+  .dot{width:11px; height:11px; border-radius:50%; background:#f0d6da; border:1px solid var(--line); transition:.2s;}
+  .dot.on{background:var(--red); border-color:var(--red); transform:scale(1.15);}
+  .curTopic{font-size:13px; color:var(--mut); margin-left:auto;}
+  .curTopic b{color:var(--red);}
+
+  .step-view[hidden]{display:none;}
+  .hint{font-size:13px; color:var(--mut); margin:0 0 12px;}
+  h2.st{font-size:17px; font-weight:800; margin:4px 0 6px; padding-left:10px; border-left:4px solid var(--red);}
+
+  /* 题目选择 */
+  .topics{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;}
+  .topic{
+    border:1.5px solid var(--line); background:var(--paper); color:var(--ink);
+    padding:14px 10px; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer;
+    text-align:center; transition:.15s; min-height:54px; display:flex; align-items:center; justify-content:center;
+  }
+  .topic:active{transform:scale(.98);}
+  .topic.active{background:var(--red); color:#fff; border-color:var(--red);}
+  .custom-row{margin-top:12px;}
+  .custom-row input{
+    width:100%; padding:13px 14px; border:1.5px solid var(--line); border-radius:10px;
+    font-size:15px; font-family:inherit; outline:none;
+  }
+  .custom-row input:focus{border-color:var(--red);}
+  .warn{color:#b00020; font-size:13px; margin-top:10px; display:none; font-weight:600;}
+
+  /* 卡片 */
+  .card{border:1px solid var(--line); border-radius:12px; padding:16px; background:var(--panel2);}
+  .card-head{display:flex; align-items:center; gap:8px; margin-bottom:4px;}
+  .badge{background:var(--red); color:#fff; font-size:12px; font-weight:700; padding:3px 10px; border-radius:6px; white-space:nowrap;}
+  .card h3{font-size:17px; margin:0; font-weight:800;}
+  .card .desc{font-size:13px; color:var(--mut); margin:6px 0 12px;}
+  .prompt{
+    background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:11px 13px; font-size:13px; white-space:pre-wrap; word-break:break-word;
+    color:#3a2730; margin-bottom:12px; max-height:240px; overflow:auto;
+  }
+  .ta-label{font-size:12.5px; color:var(--mut); margin:8px 0 5px; font-weight:600;}
+  textarea{
+    width:100%; min-height:74px; padding:11px 12px; border:1.5px solid var(--line);
+    border-radius:8px; font-size:14px; font-family:inherit; resize:vertical; outline:none; background:#fff;
+  }
+  textarea:focus{border-color:var(--red);}
+  .mini{display:grid; grid-template-columns:1fr; gap:8px;}
+  .mini .fld{border:1px solid var(--line); border-radius:8px; padding:9px 11px; background:#fff;}
+  .mini .fld label{display:block; font-size:12.5px; font-weight:700; color:var(--red); margin-bottom:4px;}
+  .mini .fld label span{color:var(--mut); font-weight:500;}
+  .mini .fld textarea{min-height:46px; padding:8px 10px; font-size:13.5px;}
+  select{
+    width:100%; padding:11px 12px; border:1.5px solid var(--line); border-radius:8px;
+    font-size:14px; font-family:inherit; background:#fff; outline:none; margin-bottom:8px;
+  }
+  select:focus{border-color:var(--red);}
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    background:var(--red); color:#fff; border:none; border-radius:9px;
+    padding:13px 18px; font-size:15px; font-weight:700; cursor:pointer; width:100%;
+    margin-top:14px; min-height:50px;
+  }
+  .btn:active{background:var(--red-d);}
+  .btn.copied{background:var(--ok);}
+  .btn-ghost{background:#fff; color:var(--red); border:1.5px solid var(--red);}
+  .nav{display:flex; gap:10px; margin-top:10px;}
+  .nav .btn{margin-top:0;}
+
+  footer{margin-top:28px; padding-top:14px; border-top:1px solid var(--line); font-size:12.5px; color:var(--mut); line-height:1.7; text-align:center;}
+  footer .cr{color:var(--red); font-weight:700; margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>提高改革攻坚能力 · 学员 AI 互动工具</h1>
+    <p>讨论式课程配套 · 选题目 → 逐步填框架 → 生成复制提示词 → 粘到元宝 / 豆包里讨论</p>
+  </header>
+
+  <div class="prog">
+    <span class="label" id="progLabel">准备 · 选题目</span>
+    <span class="dots">
+      <span class="dot on" data-i="0"></span>
+      <span class="dot" data-i="1"></span>
+      <span class="dot" data-i="2"></span>
+      <span class="dot" data-i="3"></span>
+      <span class="dot" data-i="4"></span>
+    </span>
+    <span class="curTopic" id="curTopic"></span>
+  </div>
+
+  <!-- 第 0 步：选题目 -->
+  <section class="step-view" id="step0">
+    <h2 class="st">选研讨题目</h2>
+    <p class="hint">六个备选方向点选其一即可；也可在下方自定义本期课实际锚定的题目。题目不固定，每期可换。</p>
+    <div class="topics" id="topics"></div>
+    <div class="custom-row">
+      <input id="customTopic" type="text" placeholder="或自定义题目（如：本地文旅融合、基层数字治理…）" oninput="onCustom()">
+    </div>
+    <div class="warn" id="warn">请先选择或填写研讨题目，再继续。</div>
+    <button class="btn" onclick="goNext()">进入讨论 →</button>
+  </section>
+
+  <!-- 第 1 步：追问教练 -->
+  <section class="step-view" id="step1" hidden>
+    <div class="card">
+      <div class="card-head"><span class="badge">1</span><h3>AI 追问教练（挖根因·三W）</h3></div>
+      <div class="desc">个人思考阶段用。按下面 5 栏（颗粒度 1→5）填你的想法，生成提示词交给 AI——它会**只追问、不给答案**，逼你自己把根因想透。</div>
+      <div class="prompt" id="p-c1"></div>
+      <div class="ta-label">填写追问框架（颗粒度 1→5）：</div>
+      <div class="mini">
+        <div class="fld"><label>1 现象/事实 <span>（是什么）</span></label><textarea id="f0" placeholder="你看到的真实情况" oninput="saveState()"></textarea></div>
+        <div class="fld"><label>2 我的判断 <span>（So what）</span></label><textarea id="f1" placeholder="我对这个问题的初步观点" oninput="saveState()"></textarea></div>
+        <div class="fld"><label>3 为什么 <span>（归因）</span></label><textarea id="f2" placeholder="我认为为什么会这样" oninput="saveState()"></textarea></div>
+        <div class="fld"><label>4 要什么 <span>（目标）</span></label><textarea id="f3" placeholder="我期待达到什么结果" oninput="saveState()"></textarea></div>
+        <div class="fld"><label>5 想深挖的卡点</label><textarea id="f4" placeholder="我最想让 AI 帮我追问清楚的一点" oninput="saveState()"></textarea></div>
+      </div>
+      <button class="btn" onclick="copyC1()">生成提示词复制</button>
+      <div class="nav">
+        <button class="btn btn-ghost" style="flex:1" onclick="goPrev()">← 上一步</button>
+        <button class="btn" style="flex:2" onclick="goNext()">进入下一阶段 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 第 2 步：实时结构化 -->
+  <section class="step-view" id="step2" hidden>
+    <div class="card">
+      <div class="card-head"><span class="badge">2</span><h3>AI 实时结构化（MECE）</h3></div>
+      <div class="desc">小组讨论时用。把零散要点交给 AI，它会引导你们**自己**归类成 MECE 框架、识别缺漏，不停追问，直到你们说想清楚了。</div>
+      <div class="prompt" id="p-c2"></div>
+      <div class="ta-label">你们组的讨论要点：</div>
+      <textarea id="in-c2" placeholder="粘贴讨论碎片…" oninput="saveState()"></textarea>
+      <button class="btn" onclick="copySimple('c2')">生成提示词复制</button>
+      <div class="nav">
+        <button class="btn btn-ghost" style="flex:1" onclick="goPrev()">← 上一步</button>
+        <button class="btn" style="flex:2" onclick="goNext()">进入下一阶段 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 第 3 步：角色沙盘 -->
+  <section class="step-view" id="step3" hidden>
+    <div class="card">
+      <div class="card-head"><span class="badge">3</span><h3>AI 角色沙盘（落地反馈）</h3></div>
+      <div class="desc">写方案阶段用。让 AI 扮演不同角色，用该视角**不断追问**你的方案漏洞与前提，逼你完善——不替你写方案，制造"沙盘"感。</div>
+      <div class="prompt" id="p-c3"></div>
+      <div class="ta-label">选择角色：</div>
+      <select id="role-c3" onchange="saveState()">
+        <option>企业家 / 投资方</option>
+        <option>基层群众</option>
+        <option>上级部门</option>
+        <option>相关主管部门</option>
+      </select>
+      <div class="ta-label">你的切入点 / 方案：</div>
+      <textarea id="in-c3" placeholder="粘贴你的方案…" oninput="saveState()"></textarea>
+      <button class="btn" onclick="copyC3()">生成提示词复制</button>
+      <div class="nav">
+        <button class="btn btn-ghost" style="flex:1" onclick="goPrev()">← 上一步</button>
+        <button class="btn" style="flex:2" onclick="goNext()">进入下一阶段 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 第 4 步：共识模板 -->
+  <section class="step-view" id="step4" hidden>
+    <div class="card">
+      <div class="card-head"><span class="badge">4</span><h3>共识输出模板（收口）</h3></div>
+      <div class="desc">班级互动时用。按固定格式整理本组结论，方便老师快速收口。</div>
+      <div class="prompt" id="p-c4"></div>
+      <div class="ta-label">本组结论（按 ①②③④⑤ 填）：</div>
+      <textarea id="in-c4" placeholder="①… ②… ③… ④… ⑤…" oninput="saveState()"></textarea>
+      <button class="btn" onclick="copySimple('c4')">生成提示词复制</button>
+      <div class="nav">
+        <button class="btn btn-ghost" style="flex:1" onclick="goPrev()">← 上一步</button>
+      </div>
+      <button class="btn btn-ghost" onclick="copyAll()">复制全部四张卡（按顺序）</button>
+    </div>
+  </section>
+
+  <footer>
+    使用说明：本页为单文件离线工具，手机浏览器直接打开即可，填写内容会自动保存在本机（切换 App 再回来不丢失）。复制后的内容请粘贴到「元宝 / 豆包 / 通义」等任意大模型对话框中讨论。本工具的 AI **只追问、不给答案**，讨论靠你自己完成；AI 仅辅助研讨，不改课程内容，不虚构数据。<br>
+    <button class="btn btn-ghost" style="display:block; width:auto; max-width:240px; margin:14px auto 0; text-align:center;" onclick="clearAll()">清空重来</button>
+    <span class="cr">© 中共盘锦市委党校 · 公共管理教研部 张一楠</span>
+  </footer>
+</div>
+
+<script>
+const PRESETS = ["产业转型升级","科技创新","生态环境保护","城乡融合发展","应对人口老龄化","营商环境与人才吸引"];
+let selectedPreset = null;
+let cur = 0;
+
+function currentTopic(){
+  const c = document.getElementById('customTopic').value.trim();
+  if(c) return c;
+  return selectedPreset || "";
+}
+
+/* ---------- 提示词模板 ---------- */
+const COACH = `【你的身份与铁律——必须严格遵守】
+你是干部培训研讨中的"追问教练"，不是顾问、不是答题机、不是写手。
+1. 你的唯一职责：用追问帮学员自己把问题想清楚。绝不替学员下结论。
+2. 严禁直接给出答案、方案、结论、发言稿、总结稿或任何成品文本。
+3. 每次只提一个问题，围绕学员刚说的内容深挖一层，不跳步、不发散。
+4. 学员回答后，先就这个点继续追问（为什么 / 具体指什么 / 有没有反例 / 换个角度看呢），直到他认为这点想透了，再往下走。
+5. 只有学员明确说"我想清楚了 / 可以了 / 帮我收敛"时，你才用一两句话帮他复述已讨论出的结论；在此之前绝不给结论。
+6. 若学员索要现成答案或发言稿，温和拒绝并拉回思考："先把这个问题想透，你自己的答案比现成稿更有用。"`;
+
+function p1(t, f){
+  const g = i => (f[i] && f[i].trim()) ? f[i].trim() : "（待补充）";
+  return `当前研讨课程："提高改革攻坚能力"，锚定问题："${t}"。\n\n学员填写了以下信息（三W框架，颗粒度 1→5）：\n1. 现象/事实（是什么）：${g(0)}\n2. 我的判断（So what）：${g(1)}\n3. 为什么（归因）：${g(2)}\n4. 要什么（目标）：${g(3)}\n5. 想让 AI 深挖的卡点：${g(4)}\n\n${COACH}\n\n研讨任务：基于上面的三W信息，用三W（What 是什么 / Why 为什么 / Want 要什么）式连续追问，帮学员把关键点层层想透、挖到根因。追问中要反复回到学员填的内容，一个点一个点深挖，不要急着跳到下一个。直到学员说"我想清楚了"，再用一句话帮他复述最可能的根因。`;
+}
+function p2(t, txt){
+  return `当前研讨课程："提高改革攻坚能力"，锚定问题："${t}"。\n\n${COACH}\n\n研讨任务：学员带来一些零散的讨论碎片（如下）。你不要直接帮他整理成框架，而是引导他**自己**逐条归类、识别重叠与缺漏：\n- 每次就一条碎片问：它属于哪一类？和另一条是否重叠？还缺哪一块没覆盖？\n- 持续追问，直到学员说"好了，我整理完了"，你再用 MECE（互不重叠、完全穷尽）框架帮他复述一遍他整理出的结构。\n克制、不编造。\n\n学员的讨论碎片：\n${txt || "（待补充）"}`;
+}
+function p3(t, role, txt){
+  return `当前研讨课程："提高改革攻坚能力"，锚定问题："${t}"。\n\n${COACH}\n\n研讨任务：你扮演【${role}】。学员会带来一个切入点 / 方案（如下）。你不要替他写方案或给结论，而是以该角色身份对方案**提出尖锐的追问**：前提是否成立？可行性如何？谁会反对？漏了什么成本或风险？每次一个问题，逼学员自己把方案想扎实。\n角色视角参考：企业家/投资方（务实，看重成本、效率、政策稳定性）；基层群众（政策受众，看办事体验与公平感）；上级部门（看指标完成度与可复制性）；相关主管部门（看协同成本与执行可行性）。\n克制、基于常识、不虚构数据。\n\n学员方案：\n${txt || "（待补充）"}`;
+}
+function p4(t, txt){
+  return `本组研讨锚定的问题："${t}"。\n\n${COACH}\n\n任务：学员要按下面格式整理本组结论。若某一项空着或太笼统，引导他补全、具体化，不要替他写。等他说"好了"，再帮他用原格式复述一遍。\n格式：\n① 本组关键点（最关键的症结）：\n② 切入点（打算从哪里突破）：\n③ 一条行动 + 验证指标：\n④ 一句话共识：\n⑤ 一个分歧（尚未统一的观点）：\n\n学员当前填写：\n${txt || "（暂未填写）"}`;
+}
+
+/* ---------- 向导导航 ---------- */
+function show(i){
+  cur = i;
+  for(let s=0; s<=4; s++){ document.getElementById('step'+s).hidden = (s!==i); }
+  document.getElementById('progLabel').textContent = (i===0) ? "准备 · 选题目" : ("第 " + i + " / 4 步");
+  document.querySelectorAll('.dot').forEach(d=> d.classList.toggle('on', +d.dataset.i === i));
+  window.scrollTo(0,0);
+}
+function goNext(){
+  if(cur===0 && !needTopic()) return;
+  if(cur < 4) show(cur+1);
+  saveState();
+}
+function goPrev(){ if(cur>0) show(cur-1); saveState(); }
+
+/* ---------- 渲染题目 ---------- */
+function renderTopics(){
+  const box = document.getElementById('topics');
+  box.innerHTML='';
+  PRESETS.forEach(name=>{
+    const b=document.createElement('div');
+    b.className='topic'; b.textContent=name;
+    b.addEventListener('click', ()=>{
+      selectedPreset = name;
+      document.getElementById('customTopic').value='';
+      document.getElementById('warn').style.display='none';
+      renderTopics(); refresh(); saveState();
+    });
+    if(selectedPreset===name) b.classList.add('active');
+    box.appendChild(b);
+  });
+}
+function onCustom(){
+  selectedPreset=null;
+  document.getElementById('warn').style.display='none';
+  renderTopics(); refresh(); saveState();
+}
+
+/* ---------- 刷新 ---------- */
+function refresh(){
+  const t = currentTopic();
+  document.getElementById('curTopic').innerHTML = t ? ("当前题目：<b>"+t+"</b>") : "尚未选择题目";
+  const ph = t || "【请先在第一步选择研讨题目】";
+  document.getElementById('p-c1').textContent = p1(ph, ["","","","",""]);
+  document.getElementById('p-c2').textContent = p2(ph, "");
+  document.getElementById('p-c3').textContent = p3(ph, "（未选角色）", "");
+  document.getElementById('p-c4').textContent = p4(ph, "");
+}
+
+/* ---------- 复制 ---------- */
+function needTopic(){
+  if(!currentTopic()){
+    document.getElementById('warn').style.display='block';
+    document.getElementById('step0').scrollIntoView({behavior:'smooth'});
+    return false;
+  }
+  document.getElementById('warn').style.display='none';
+  return true;
+}
+function copyC1(){
+  if(!needTopic()) return;
+  const f = [0,1,2,3,4].map(i=>document.getElementById('f'+i).value);
+  copyText(p1(currentTopic(), f), event.currentTarget);
+}
+function copySimple(id){
+  if(!needTopic()) return;
+  const txt = document.getElementById('in-'+id).value.trim();
+  copyText((id==='c2') ? p2(currentTopic(), txt) : p4(currentTopic(), txt), event.currentTarget);
+}
+function copyC3(){
+  if(!needTopic()) return;
+  const role = document.getElementById('role-c3').value;
+  const txt = document.getElementById('in-c3').value.trim();
+  copyText(p3(currentTopic(), role, txt), event.currentTarget);
+}
+function copyAll(){
+  if(!needTopic()) return;
+  const t = currentTopic();
+  const f = [0,1,2,3,4].map(i=>document.getElementById('f'+i).value);
+  let out = "【① AI 追问教练】\n" + p1(t, f) + "\n\n————————\n\n";
+  out += "【② AI 实时结构化】\n" + p2(t, document.getElementById('in-c2').value.trim()) + "\n\n————————\n\n";
+  out += "【③ AI 角色沙盘】\n" + p3(t, document.getElementById('role-c3').value, document.getElementById('in-c3').value.trim()) + "\n\n————————\n\n";
+  out += "【④ 共识输出模板】\n" + p4(t, document.getElementById('in-c4').value.trim());
+  copyText(out, event.currentTarget);
+}
+
+/* ---------- 剪贴板（兼容 file://） ---------- */
+function copyText(text, btn){
+  const done = ()=>flash(btn);
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(text).then(done).catch(()=>fallback(text, done));
+  } else { fallback(text, done); }
+}
+function fallback(text, done){
+  const ta=document.createElement('textarea');
+  ta.value=text; ta.style.position='fixed'; ta.style.top='0'; ta.style.left='0'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try{ document.execCommand('copy'); done(); }
+  catch(e){ alert('复制失败，请长按文字手动选择复制'); }
+  document.body.removeChild(ta);
+}
+function flash(btn){
+  const old=btn.textContent; btn.textContent='已复制 ✓'; btn.classList.add('copied');
+  setTimeout(()=>{ btn.textContent=old; btn.classList.remove('copied'); }, 1600);
+}
+
+renderTopics();
+refresh();
+if(!loadState()) show(0);
+
+/* ---------- 本地缓存（localStorage，兼容 file:// 降级） ---------- */
+function saveState(){
+  try{
+    const f=[0,1,2,3,4].map(i=>document.getElementById('f'+i).value);
+    const data={
+      v:1, preset:selectedPreset,
+      custom:document.getElementById('customTopic').value,
+      cur:cur, f:f,
+      role:document.getElementById('role-c3').value,
+      c2:document.getElementById('in-c2').value,
+      c3:document.getElementById('in-c3').value,
+      c4:document.getElementById('in-c4').value
+    };
+    localStorage.setItem('reformAiTool_v1', JSON.stringify(data));
+  }catch(e){ /* file:// 不支持时静默降级，不影响使用 */ }
+}
+function loadState(){
+  try{
+    const raw=localStorage.getItem('reformAiTool_v1');
+    if(!raw) return false;
+    const d=JSON.parse(raw);
+    if(d.preset) selectedPreset=d.preset;
+    if(d.custom) document.getElementById('customTopic').value=d.custom;
+    if(Array.isArray(d.f)) d.f.forEach((v,i)=>{ if(i<5) document.getElementById('f'+i).value=v||''; });
+    if(d.role) document.getElementById('role-c3').value=d.role;
+    if(d.c2) document.getElementById('in-c2').value=d.c2;
+    if(d.c3) document.getElementById('in-c3').value=d.c3;
+    if(d.c4) document.getElementById('in-c4').value=d.c4;
+    renderTopics(); refresh();
+    show(typeof d.cur==='number' ? d.cur : 0);
+    return true;
+  }catch(e){ return false; }
+}
+function clearAll(){
+  if(!confirm('确定清空所有填写内容，重新开始吗？此操作不可恢复。')) return;
+  try{ localStorage.removeItem('reformAiTool_v1'); }catch(e){}
+  selectedPreset=null;
+  document.getElementById('customTopic').value='';
+  [0,1,2,3,4].forEach(i=>document.getElementById('f'+i).value='');
+  document.getElementById('role-c3').value='企业家 / 投资方';
+  document.getElementById('in-c2').value='';
+  document.getElementById('in-c3').value='';
+  document.getElementById('in-c4').value='';
+  renderTopics(); refresh(); show(0);
+}
+</script>
+</body>
+</html>
