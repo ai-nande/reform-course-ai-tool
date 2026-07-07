@@ -67,11 +67,12 @@
   .badge{background:var(--red); color:#fff; font-size:12px; font-weight:700; padding:3px 10px; border-radius:6px; white-space:nowrap;}
   .card h3{font-size:17px; margin:0; font-weight:800;}
   .card .desc{font-size:13px; color:var(--mut); margin:6px 0 12px;}
-  .prompt{
-    background:var(--panel); border:1px solid var(--line); border-radius:8px;
-    padding:11px 13px; font-size:13px; white-space:pre-wrap; word-break:break-word;
-    color:#3a2730; margin-bottom:12px; max-height:240px; overflow:auto;
-  }
+  .prompt{background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:11px 13px; font-size:13px; margin-bottom:12px;}
+  .prompt[hidden]{display:none;}
+  .copied{color:var(--ok); font-weight:700; font-size:13px;}
+  .link{background:none; border:none; color:var(--red); font-size:13px; text-decoration:underline; cursor:pointer; padding:0; margin-left:4px; font-family:inherit;}
+  .ptext{white-space:pre-wrap; word-break:break-word; color:#3a2730; margin:8px 0 0; max-height:240px; overflow:auto; font-family:inherit; font-size:13px;}
   .ta-label{font-size:12.5px; color:var(--mut); margin:8px 0 5px; font-weight:600;}
   textarea{
     width:100%; min-height:74px; padding:11px 12px; border:1.5px solid var(--line);
@@ -137,8 +138,7 @@
   <section class="step-view" id="step1" hidden>
     <div class="card">
       <div class="card-head"><span class="badge">1</span><h3>AI 追问教练（挖根因·3W）</h3></div>
-      <div class="desc">个人思考阶段用。按下面 5 栏（角度 1→5）填你的想法，生成提示词交给 AI——它会**只追问、不给答案**，逼你自己把根因想透。</div>
-      <div class="prompt" id="p-c1"></div>
+      <div class="prompt" id="p-c1" hidden><div class="copied">✅ 已复制 <button type="button" class="link" onclick="togglePrompt('pt-c1')">查看提示词 ▾</button></div><pre class="ptext" id="pt-c1" hidden></pre></div>
       <div class="ta-label">填写追问框架（角度 1→5）：</div>
       <div class="mini">
         <div class="fld"><label>1 现象/事实 <span>（是什么）</span></label><textarea id="f0" placeholder="你看到的真实情况" oninput="saveState()"></textarea></div>
@@ -159,8 +159,7 @@
   <section class="step-view" id="step2" hidden>
     <div class="card">
       <div class="card-head"><span class="badge">2</span><h3>AI 实时结构化（MECE）</h3></div>
-      <div class="desc">小组讨论时用。把零散要点交给 AI，它会引导你们**自己**归类成 MECE 框架、识别缺漏，不停追问，直到你们说想清楚了。</div>
-      <div class="prompt" id="p-c2"></div>
+      <div class="prompt" id="p-c2" hidden><div class="copied">✅ 已复制 <button type="button" class="link" onclick="togglePrompt('pt-c2')">查看提示词 ▾</button></div><pre class="ptext" id="pt-c2" hidden></pre></div>
       <div class="ta-label">你们组的讨论要点：</div>
       <textarea id="in-c2" placeholder="粘贴讨论碎片…" oninput="saveState()"></textarea>
       <button class="btn" onclick="copySimple('c2')">生成提示词复制</button>
@@ -175,8 +174,7 @@
   <section class="step-view" id="step3" hidden>
     <div class="card">
       <div class="card-head"><span class="badge">3</span><h3>AI 角色沙盘（落地反馈）</h3></div>
-      <div class="desc">写方案阶段用。让 AI 扮演不同角色，用该视角**不断追问**你的方案漏洞与前提，逼你完善——不替你写方案，制造"沙盘"感。</div>
-      <div class="prompt" id="p-c3"></div>
+      <div class="prompt" id="p-c3" hidden><div class="copied">✅ 已复制 <button type="button" class="link" onclick="togglePrompt('pt-c3')">查看提示词 ▾</button></div><pre class="ptext" id="pt-c3" hidden></pre></div>
       <div class="ta-label">选择角色：</div>
       <select id="role-c3" onchange="saveState()">
         <option>企业家 / 投资方</option>
@@ -198,8 +196,7 @@
   <section class="step-view" id="step4" hidden>
     <div class="card">
       <div class="card-head"><span class="badge">4</span><h3>共识输出模板（收口）</h3></div>
-      <div class="desc">班级互动时用。按固定格式整理本组结论，方便老师快速收口。</div>
-      <div class="prompt" id="p-c4"></div>
+      <div class="prompt" id="p-c4" hidden><div class="copied">✅ 已复制 <button type="button" class="link" onclick="togglePrompt('pt-c4')">查看提示词 ▾</button></div><pre class="ptext" id="pt-c4" hidden></pre></div>
       <div class="ta-label">本组结论（按 ①②③④⑤ 填）：</div>
       <textarea id="in-c4" placeholder="①… ②… ③… ④… ⑤…" oninput="saveState()"></textarea>
       <button class="btn" onclick="copySimple('c4')">生成提示词复制</button>
@@ -300,11 +297,16 @@ function onCustom(){
 function refresh(){
   const t = currentTopic();
   document.getElementById('curTopic').innerHTML = t ? ("当前题目：<b>"+t+"</b>") : "尚未选择题目";
-  const ph = t || "【请先在第一步选择研讨题目】";
-  document.getElementById('p-c1').textContent = p1(ph, ["","","","",""]);
-  document.getElementById('p-c2').textContent = p2(ph, "");
-  document.getElementById('p-c3').textContent = p3(ph, "（未选角色）", "");
-  document.getElementById('p-c4').textContent = p4(ph, "");
+}
+function togglePrompt(id){
+  const e = document.getElementById(id);
+  e.hidden = !e.hidden;
+  const btn = e.previousElementSibling && e.previousElementSibling.querySelector('.link');
+  if(btn) btn.textContent = e.hidden ? '查看提示词 ▾' : '收起 ▴';
+}
+function showCopied(divId, preId, text){
+  document.getElementById(divId).hidden = false;
+  document.getElementById(preId).textContent = text;
 }
 
 /* ---------- 复制 ---------- */
@@ -320,18 +322,24 @@ function needTopic(){
 function copyC1(){
   if(!needTopic()) return;
   const f = [0,1,2,3,4].map(i=>document.getElementById('f'+i).value);
-  copyText(p1(currentTopic(), f), event.currentTarget);
+  const t = p1(currentTopic(), f);
+  copyText(t, event.currentTarget);
+  showCopied('p-c1','pt-c1', t);
 }
 function copySimple(id){
   if(!needTopic()) return;
   const txt = document.getElementById('in-'+id).value.trim();
-  copyText((id==='c2') ? p2(currentTopic(), txt) : p4(currentTopic(), txt), event.currentTarget);
+  const t = (id==='c2') ? p2(currentTopic(), txt) : p4(currentTopic(), txt);
+  copyText(t, event.currentTarget);
+  showCopied('p-'+id, 'pt-'+id, t);
 }
 function copyC3(){
   if(!needTopic()) return;
   const role = document.getElementById('role-c3').value;
   const txt = document.getElementById('in-c3').value.trim();
-  copyText(p3(currentTopic(), role, txt), event.currentTarget);
+  const t = p3(currentTopic(), role, txt);
+  copyText(t, event.currentTarget);
+  showCopied('p-c3','pt-c3', t);
 }
 function copyAll(){
   if(!needTopic()) return;
@@ -342,6 +350,7 @@ function copyAll(){
   out += "【③ AI 角色沙盘】\n" + p3(t, document.getElementById('role-c3').value, document.getElementById('in-c3').value.trim()) + "\n\n————————\n\n";
   out += "【④ 共识输出模板】\n" + p4(t, document.getElementById('in-c4').value.trim());
   copyText(out, event.currentTarget);
+  showCopied('p-c4','pt-c4', out);
 }
 
 /* ---------- 剪贴板（兼容 file://） ---------- */
