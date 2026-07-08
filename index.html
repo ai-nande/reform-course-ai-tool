@@ -290,7 +290,8 @@ function renderTopics(){
 function onCustom(){
   selectedPreset=null;
   document.getElementById('warn').style.display='none';
-  renderTopics(); refresh(); saveState();
+  document.querySelectorAll('.topic').forEach(b=>b.classList.remove('active'));
+  refresh(); saveState();
 }
 
 /* ---------- 刷新 ---------- */
